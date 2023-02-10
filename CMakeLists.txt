@@ -615,3 +615,87 @@ if (SPIRV_CROSS_CLI)
 		endif()
 	endif()
 endif()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ********************************************************************************
+# following was added to create a lib that wraps up the standalone (spirv-cross) with a simple c++ interface 
+# we can use to do a single op.  goal is to mimic the creation of the standalone's cmake invocation as much as possible- 
+# so if changes are made subsequently to it, they should also be applied to our lib!
+if (NOT SPIRV_CROSS_ENABLE_GLSL)
+	message(FATAL_ERROR "Must enable GLSL if building CLI.")
+endif()
+
+if (NOT SPIRV_CROSS_ENABLE_HLSL)
+	message(FATAL_ERROR "Must enable HLSL if building CLI.")
+endif()
+
+if (NOT SPIRV_CROSS_ENABLE_MSL)
+	message(FATAL_ERROR "Must enable MSL if building CLI.")
+endif()
+
+if (NOT SPIRV_CROSS_ENABLE_CPP)
+	message(FATAL_ERROR "Must enable C++ if building CLI.")
+endif()
+
+if (NOT SPIRV_CROSS_ENABLE_REFLECT)
+	message(FATAL_ERROR "Must enable reflection if building CLI.")
+endif()
+
+if (NOT SPIRV_CROSS_ENABLE_UTIL)
+	message(FATAL_ERROR "Must enable utils if building CLI.")
+endif()
+
+if (NOT SPIRV_CROSS_STATIC)
+	message(FATAL_ERROR "Must build static libraries if building CLI.")
+endif()
+add_library(SPIRVCrossLib SPIRVCrossLib.cpp)
+target_compile_options(SPIRVCrossLib PRIVATE ${spirv-compiler-options})
+target_include_directories(SPIRVCrossLib PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_compile_definitions(SPIRVCrossLib PRIVATE ${spirv-compiler-defines} HAVE_SPIRV_CROSS_GIT_VERSION)
+set_target_properties(SPIRVCrossLib PROPERTIES LINK_FLAGS "${spirv-cross-link-flags}")
+if (NOT SPIRV_CROSS_SKIP_INSTALL)
+	install(TARGETS SPIRVCrossLib DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
+target_link_libraries(SPIRVCrossLib PRIVATE
+	spirv-cross-glsl
+	spirv-cross-hlsl
+	spirv-cross-cpp
+	spirv-cross-reflect
+	spirv-cross-msl
+	spirv-cross-util
+	spirv-cross-core)
+
+
+target_compile_features(SPIRVCrossLib PUBLIC cxx_std_20)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(SPIRVCrossLib ${LIBRARIES})
+target_include_directories(SPIRVCrossLib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/SPIRVCrossLib")
