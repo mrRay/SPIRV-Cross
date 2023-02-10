@@ -51,6 +51,38 @@ using namespace spv;
 using namespace SPIRV_CROSS_NAMESPACE;
 using namespace std;
 
+
+
+
+
+
+
+
+/*	HELLO RAY (hi me!)
+	
+	- this standalone already lets you pass the shader contents as a string, so ingest doesn't require modification
+	- i'm adding an NSData instance that gets populated with the binary contents of the SPIRV shader on ingest
+	- i'm adding an NSString instance that gets populated with the shader output string
+	- i'm calling what was the main() function of this CLI manually from my obj-c wrapper class- basically, 
+	i'm simulating the process of invoking the CLI.
+	
+	- the modifications i'm making around this are very minimal, and very specific- this is NOT safe 
+	for general use outside of this class without more work!
+*/
+#include "SPIRVCrossLib.hpp"
+#include <mutex>
+#include <vector>
+std::mutex			_SPIRVCrossLibLock;
+const std::vector<uint32_t>		*_spirvBinaryIngestContents = nullptr;	//	never retainedlocally
+std::string			*_shaderOutputContents = nullptr;
+
+
+
+
+
+
+
+
 #ifdef SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS
 static inline void THROW(const char *str)
 {
@@ -232,12 +264,23 @@ static vector<uint32_t> read_spirv_file_stdin()
 #endif
 
 	vector<uint32_t> buffer;
-	uint32_t tmp[256];
-	size_t ret;
-
-	while ((ret = fread(tmp, sizeof(uint32_t), 256, stdin)))
-		buffer.insert(buffer.end(), tmp, tmp + ret);
-
+	//uint32_t tmp[256];
+	//size_t ret;
+	//
+	//while ((ret = fread(tmp, sizeof(uint32_t), 256, stdin)))
+	//	buffer.insert(buffer.end(), tmp, tmp + ret);
+	
+	
+	
+	
+	//	instead of populating the buffer from stdin, we populate it from the data values we were passed!
+	for (const uint32_t & tmpDWord : *_spirvBinaryIngestContents)	{
+		buffer.insert( buffer.end(), tmpDWord );
+	}
+	
+	
+	
+	
 	return buffer;
 }
 
@@ -1940,8 +1983,19 @@ static int main_inner(int argc, char *argv[])
 
 	if (args.output)
 		write_string_to_file(args.output, compiled_output.c_str());
-	else
-		printf("%s", compiled_output.c_str());
+	else	{
+		//printf("%s", compiled_output.c_str());
+		
+		
+		
+		
+		//	instead of printing the shader contents to stdout, dump it to an NSString that we'll be returning...
+		*_shaderOutputContents = compiled_output;
+		
+		
+		
+		
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -1997,8 +2051,28 @@ int this_was_originally_the_spirv_cross_CLIs_main_entrypoint(int argc, char *arg
 
 
 
-#include "SPIRVCrossLib.hpp"
 
 void SPIRVCrossLibFunc()    {
     fprintf(stderr, "**** %s ****\n", __PRETTY_FUNCTION__);
+}
+
+bool ConvertSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, std::string & outShaderString)	{
+	outShaderString.clear();
+	if (inSPIRVData.size() < 1)	{
+		return false;
+	}
+	
+	std::lock_guard<std::mutex>		tmpLock(_SPIRVCrossLibLock);
+	_spirvBinaryIngestContents = &inSPIRVData;
+	_shaderOutputContents = &outShaderString;
+	
+	char			*argv[] = {
+		const_cast<char*>("./spirv-cross"),
+		const_cast<char*>("--msl"),
+		const_cast<char*>("-")
+	};
+	
+	this_was_originally_the_spirv_cross_CLIs_main_entrypoint(3, argv);
+	
+	return true;
 }
