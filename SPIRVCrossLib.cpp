@@ -2056,7 +2056,7 @@ void SPIRVCrossLibFunc()    {
     fprintf(stderr, "**** %s ****\n", __PRETTY_FUNCTION__);
 }
 
-bool ConvertSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, std::string & outShaderString)	{
+bool ConvertVertSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, const std::string & inNewMainFuncName, std::string & outShaderString)	{
 	outShaderString.clear();
 	if (inSPIRVData.size() < 1)	{
 		return false;
@@ -2068,11 +2068,47 @@ bool ConvertSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, std::string & 
 	
 	char			*argv[] = {
 		const_cast<char*>("./spirv-cross"),
+		const_cast<char*>("--rename-entry-point"),
+		const_cast<char*>("main"),
+		const_cast<char*>(inNewMainFuncName.c_str()),
+		const_cast<char*>("vert"),
 		const_cast<char*>("--msl"),
 		const_cast<char*>("-")
 	};
 	
-	this_was_originally_the_spirv_cross_CLIs_main_entrypoint(3, argv);
+	this_was_originally_the_spirv_cross_CLIs_main_entrypoint(7, argv);
+	
+	return true;
+}
+
+
+bool ConvertFragSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, const std::string & inNewMainFuncName, std::string & outShaderString)	{
+	//std::cout << __PRETTY_FUNCTION__ << std::endl;
+	
+	outShaderString.clear();
+	if (inSPIRVData.size() < 1)	{
+		return false;
+	}
+	
+	std::lock_guard<std::mutex>		tmpLock(_SPIRVCrossLibLock);
+	_spirvBinaryIngestContents = &inSPIRVData;
+	_shaderOutputContents = &outShaderString;
+	
+	char			*argv[] = {
+		const_cast<char*>("./spirv-cross"),
+		const_cast<char*>("--rename-entry-point"),
+		const_cast<char*>("main"),
+		const_cast<char*>(inNewMainFuncName.c_str()),
+		const_cast<char*>("frag"),
+		const_cast<char*>("--msl"),
+		const_cast<char*>("-")
+	};
+	//std::cout << "args are..." << std::endl;
+	//for (auto blah : argv)	{
+	//	std::cout << "\t" << blah << std::endl;
+	//}
+	
+	this_was_originally_the_spirv_cross_CLIs_main_entrypoint(7, argv);
 	
 	return true;
 }
