@@ -28,6 +28,8 @@ if (${CMAKE_VERSION} VERSION_GREATER "3.0.1")
 	cmake_policy(SET CMP0048 NEW)
 endif()
 
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+
 project(SPIRV-Cross LANGUAGES CXX C)
 enable_testing()
 
