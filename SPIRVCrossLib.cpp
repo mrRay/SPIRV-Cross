@@ -70,6 +70,7 @@ using namespace std;
 	for general use outside of this class without more work!
 */
 #include "SPIRVCrossLib.hpp"
+#include "stdcapture.h"
 #include <mutex>
 #include <vector>
 std::mutex			_SPIRVCrossLibLock;
@@ -2101,7 +2102,7 @@ void SPIRVCrossLibFunc()    {
     fprintf(stderr, "**** %s ****\n", __PRETTY_FUNCTION__);
 }
 
-bool ConvertVertSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, const std::string & inNewMainFuncName, std::string & outShaderString)	{
+bool ConvertVertSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, const std::string & inNewMainFuncName, std::string & outShaderString, std::string & outErrString)	{
 	outShaderString.clear();
 	if (inSPIRVData.size() < 1)	{
 		return false;
@@ -2121,13 +2122,22 @@ bool ConvertVertSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, const std:
 		const_cast<char*>("-")
 	};
 	
-	this_was_originally_the_spirv_cross_CLIs_main_entrypoint(7, argv);
+	bool		returnMe = false;
+	
+	std::string captureErr;
+	{
+		std::capture::CaptureStdout		cap([&](const char *buf, size_t bufSize)	{
+			outErrString += std::string(buf, bufSize);
+		});
+		
+		returnMe = (this_was_originally_the_spirv_cross_CLIs_main_entrypoint(7, argv) == 0);
+	}
 	
 	return true;
 }
 
 
-bool ConvertFragSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, const std::string & inNewMainFuncName, std::string & outShaderString)	{
+bool ConvertFragSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, const std::string & inNewMainFuncName, std::string & outShaderString, std::string & outErrString)	{
 	//std::cout << __PRETTY_FUNCTION__ << std::endl;
 	
 	outShaderString.clear();
@@ -2153,7 +2163,16 @@ bool ConvertFragSPIRVToMSL(const std::vector<uint32_t> & inSPIRVData, const std:
 	//	std::cout << "\t" << blah << std::endl;
 	//}
 	
-	this_was_originally_the_spirv_cross_CLIs_main_entrypoint(7, argv);
+	bool		returnMe = false;
+	
+	std::string captureErr;
+	{
+		std::capture::CaptureStdout		cap([&](const char *buf, size_t bufSize)	{
+			outErrString += std::string(buf, bufSize);
+		});
+		
+		returnMe = (this_was_originally_the_spirv_cross_CLIs_main_entrypoint(7, argv) == 0);
+	}
 	
 	return true;
 }
