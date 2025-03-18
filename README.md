@@ -3,6 +3,11 @@
     SPDX-License-Identifier: CC-BY-4.0
 -->
 
+# THIS IS A FORK
+
+The original repo can be found [here](https://github.com/KhronosGroup/SPIRV-Cross).
+This fork exists to implement a crude lib that encompasses functionality found in this repo.  It doesn't contain anything worth pushing upstream.
+
 # SPIRV-Cross
 
 SPIRV-Cross is a tool designed for parsing and converting SPIR-V to other shader languages.
