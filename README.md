@@ -8,6 +8,12 @@
 The original repo can be found [here](https://github.com/KhronosGroup/SPIRV-Cross).
 This fork exists to implement a crude lib that encompasses functionality found in this repo.  It doesn't contain anything worth pushing upstream.
 
+Building- end product is `libSPIRVCrossLib.dylib`:
+```
+cmake -DCMAKE_BUILD_TYPE=Release -S ./ -B ./build
+cmake --build ./build --config RelWithDebInfo
+```
+
 # SPIRV-Cross
 
 SPIRV-Cross is a tool designed for parsing and converting SPIR-V to other shader languages.
